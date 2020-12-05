@@ -1,11 +1,7 @@
-#!/usr/bin/env python3
-
-
 import json
-from data import goals, teachers
+from .data import goals, teachers
+from . import GOALS_JSON, TEACHERS_JSON
 
-GOALS_JSON = 'goals.json'
-TEACHERS_JSON = 'teachers.json'
 
 def export_data():
     with open(GOALS_JSON, 'w', encoding='utf8') as f:
