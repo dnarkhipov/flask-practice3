@@ -22,6 +22,9 @@ class Profile:
 
     @property
     def free_days_in_week(self):
+        """
+        Keep only free hours in week day
+        """
         def _keep_free_time(s):
             return [h for h, v in s.items() if v]
         return {d: _keep_free_time(s) for d, s in self.free.items()}

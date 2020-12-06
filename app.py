@@ -109,9 +109,22 @@ def get_booking_form(profile_id: int, day_of_week, time):
     )
 
 
-@app.route('/booking_done/')
+@app.route('/booking_done/', methods=['POST'])
 def get_booking_form_done():
-    return "заявка отправлена"
+    # return "заявка отправлена"
+    booking_form = BookingForm()
+
+    booking_record = booking_form.data
+    # чистим данные формы от CSRF токена
+    booking_record.pop('csrf_token', None)
+    db.add_booking_record(booking_record)
+
+    return render_template(
+        'booking_done.html',
+        **base_template_attr,
+        form=booking_form,
+        weekday_names=weekday_names_ru
+    )
 
 
 # https://flask.palletsprojects.com/en/1.1.x/patterns/favicon/
