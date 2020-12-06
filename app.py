@@ -4,9 +4,10 @@ from flask_wtf.csrf import CSRFProtect
 from data import MockDB
 
 from profile import Profile
+from booking_form import BookingForm
 
 
-day_names_ru = {
+weekday_names_ru = {
     "mon": {"short": "Пн", "full": "Понедельник"},
     "tue": {"short": "Вт", "full": "Вторник"},
     "wed": {"short": "Ср", "full": "Среда"},
@@ -73,7 +74,7 @@ def get_profile_by_id(profile_id: int):
         'profile.html',
         **base_template_attr,
         profile=Profile(**profile),
-        day_names=day_names_ru
+        weekday_names=weekday_names_ru
     )
 
 
@@ -89,7 +90,23 @@ def get_request_done():
 
 @app.route('/booking/<int:profile_id>/<day_of_week>/<time>/')
 def get_booking_form(profile_id: int, day_of_week, time):
-    return "здесь будет форма бронирования <profile_id>"
+    # return "здесь будет форма бронирования <profile_id>"
+    profile = db.search_teacher_by_id(profile_id)
+    if not profile:
+        return redirect('/all')
+
+    booking_form = BookingForm()
+    booking_form.clientTeacher.data = profile_id
+    booking_form.clientWeekday.data = day_of_week
+    booking_form.clientTime.data = f'{time[:2]}:{time[-2:]}'
+
+    return render_template(
+        'booking.html',
+        **base_template_attr,
+        profile=Profile(**profile),
+        form=booking_form,
+        weekday_names=weekday_names_ru
+    )
 
 
 @app.route('/booking_done/')
