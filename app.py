@@ -1,7 +1,10 @@
 import os
-from flask import Flask, render_template, send_from_directory, redirect
+import json
+from flask import Flask, render_template, send_from_directory, redirect, url_for, request
 from flask_wtf.csrf import CSRFProtect
 from data import MockDB
+
+from base64 import urlsafe_b64encode, urlsafe_b64decode
 
 from profile import Profile
 from booking_form import BookingForm
@@ -88,9 +91,10 @@ def get_request_done():
     return "заявка на подбор отправлена"
 
 
-@app.route('/booking/<int:profile_id>/<day_of_week>/<time>/')
+@app.route('/booking/<int:profile_id>/<day_of_week>/<time>/', methods=['GET', 'POST'])
 def get_booking_form(profile_id: int, day_of_week, time):
     # return "здесь будет форма бронирования <profile_id>"
+
     profile = db.search_teacher_by_id(profile_id)
     if not profile:
         return redirect('/all')
@@ -99,6 +103,16 @@ def get_booking_form(profile_id: int, day_of_week, time):
     booking_form.clientTeacher.data = profile_id
     booking_form.clientWeekday.data = day_of_week
     booking_form.clientTime.data = f'{time[:2]}:{time[-2:]}'
+
+    if request.method == 'POST' and booking_form.validate():
+        booking_record = booking_form.data
+        # сохраняем данные формы без CSRF токена
+        booking_record.pop('csrf_token', None)
+        db.add_booking_record(booking_record)
+
+        # пакуем данные формы для передачи в квитанцию
+        fdata = urlsafe_b64encode(bytes(json.dumps(booking_record, ensure_ascii=False), 'utf-8'))
+        return redirect(url_for('get_booking_form_done', fdata=fdata))
 
     return render_template(
         'booking.html',
@@ -109,20 +123,16 @@ def get_booking_form(profile_id: int, day_of_week, time):
     )
 
 
-@app.route('/booking_done/', methods=['POST'])
-def get_booking_form_done():
+@app.route('/booking_done/<fdata>')
+def get_booking_form_done(fdata):
     # return "заявка отправлена"
-    booking_form = BookingForm()
 
-    booking_record = booking_form.data
-    # чистим данные формы от CSRF токена
-    booking_record.pop('csrf_token', None)
-    db.add_booking_record(booking_record)
-
+    # распаковываем данные формы
+    booking_record = json.loads(urlsafe_b64decode(fdata).decode('utf-8'))
     return render_template(
         'booking_done.html',
         **base_template_attr,
-        form=booking_form,
+        booking_info=booking_record,
         weekday_names=weekday_names_ru
     )
 

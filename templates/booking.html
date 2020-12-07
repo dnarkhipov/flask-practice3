@@ -4,7 +4,7 @@
   <main class="container mt-3">
     <div class="row mt-5">
       <div class="col-10 col-md-6 offset-1 offset-md-3 mb-3">
-        <form action="{{ url_for('get_booking_form_done') }}" class="card mb-3" method="POST">
+        <form action="{{ url_for('get_booking_form', profile_id=form.clientTeacher.data, day_of_week=form.clientWeekday.data, time=form.clientTime.data|replace(':', '')) }}" class="card mb-3" method="POST">
             {{ form.csrf_token() }}
           <div class="card-body text-center pt-5">
             <img src="{{ profile.picture }}" class="mb-3" width="95" alt="{{ profile.name }}">
@@ -24,7 +24,15 @@
             {{ form.clientName(class_="form-control") }}
 
             {{ form.clientPhone.label(class_="mb-1 mt-2") }}
-            {{ form.clientPhone(class_="form-control") }}
+            {% if form.clientPhone.errors|length > 0 %}
+                {{ form.clientPhone(class_="form-control is-invalid") }}
+                {% else %}
+                {{ form.clientPhone(class_="form-control") }}
+            {% endif %}
+              {% for err in form.clientPhone.errors %}
+                  <div class="invalid-feedback">{{ err }}</div>
+              {% endfor %}
+
             <input type="submit" class="btn btn-primary btn-block mt-4" value="Записаться на пробный урок">
 
           </div>

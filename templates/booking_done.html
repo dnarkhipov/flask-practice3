@@ -7,16 +7,16 @@
       <div class="col-10 col-md-6 offset-1 offset-md-3">
         <div class="card mb-3">
           <div class="card-body text-center pt-5">
-            <img src="../static/check.png" class="mb-3" width="65" alt="">
+            <img src="/static/check.png" class="mb-3" width="65" alt="">
             <h2 class="h3 card-title mt-4 mb-2">Отправлено!</h2>
             <p>Скоро мы вам перезвоним</p>
           </div>
           <hr />
           <div class="card-body mx-5">
             <p><b>Тема:</b> Пробный урок</p>
-            <p><b>Дата:</b> {{ weekday_names[form.clientWeekday.data]['full'] }}, {{ form.clientTime.data }}</p>
-            <p><b>Имя:</b> {{ form.clientName.data }}</p>
-            <p><b>Телефон:</b> {{ form.clientPhone.data }}</p>
+            <p><b>Дата:</b> {{ weekday_names[booking_info.clientWeekday]['full'] }}, {{ booking_info.clientTime }}</p>
+            <p><b>Имя:</b> {{ booking_info.clientName }}</p>
+            <p><b>Телефон:</b> {{ booking_info.clientPhone }}</p>
           </div>
         </div>
       </div>

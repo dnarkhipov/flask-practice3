@@ -46,6 +46,10 @@ class MockDB:
         :param booking: заявка на бронирование
         """
         if BOOKING_JSON.exists():
+            """
+            файл с заявками должен оставаться корректным по формату JSON,
+            самое простое решение - перепистаь его заново с новой записью 
+            """
             try:
                 with open(BOOKING_JSON, 'r') as f:
                     booking_list = json.load(f)
