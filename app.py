@@ -89,7 +89,10 @@ def get_request():
 
     request_form = RequestForm()
     request_form.goal.choices = [(k, v) for k, v in db.goals.items()]
+    request_form.goal.default = request_form.goal.choices[0][0]
     request_form.time_limit.choices = [(k, v) for k, v in db.time_limits.items()]
+    request_form.time_limit.default = request_form.time_limit.choices[0][0]
+    request_form.process()
 
     return render_template(
         'request.html',
