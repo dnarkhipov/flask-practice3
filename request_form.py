@@ -1,13 +1,12 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, HiddenField
+from wtforms import RadioField, StringField
 from wtforms import validators
 from wtforms.fields.html5 import TelField
 
 
-class BookingForm(FlaskForm):
-    clientWeekday = HiddenField()
-    clientTime = HiddenField()
-    clientTeacher = HiddenField()
+class RequestForm(FlaskForm):
+    goal = RadioField('Какая цель занятий?')
+    time_limit = RadioField('Сколько времени есть?')
 
     clientName = StringField('Вас зовут', [validators.InputRequired('Необходимо заполнить это поле')])
 

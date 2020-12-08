@@ -11,10 +11,19 @@ data_path = Path(__file__).parent
 GOALS_JSON = data_path.joinpath('goals.json')
 TEACHERS_JSON = data_path.joinpath('teachers.json')
 BOOKING_JSON = data_path.joinpath('booking.json')
+REQUEST_JSON = data_path.joinpath('request.json')
 
+
+REQUEST_TIME_LIMITS = {
+    'limit1': '1-2 часа в неделю',
+    'limit2': '3-5 часов в неделю',
+    'limit3': '5-7 часов в неделю',
+    'limit4': '7-10 часов в неделю'
+}
 
 class MockDB:
     def __init__(self):
+        self._time_limits = REQUEST_TIME_LIMITS
         try:
             with open(GOALS_JSON, 'r') as f:
                 self._goals: 'Dict' = json.load(f)
@@ -29,6 +38,10 @@ class MockDB:
             raise Exception("Ошибка при инициализации БД. Необходимо выполнить экспорт данных в json командой python -m data")
 
     @property
+    def time_limits(self) -> 'Dict':
+        return self._time_limits
+
+    @property
     def goals(self) -> 'Dict':
         return self._goals
 
@@ -36,7 +49,7 @@ class MockDB:
     def teachers(self) -> 'List':
         return self._teachers
 
-    def search_teacher_by_id(self, teacher_id: int) ->'Optional[Dict]':
+    def search_teacher_by_id(self, teacher_id: int) -> 'Optional[Dict]':
         return next((t for t in self.teachers if t['id'] == teacher_id), None)
 
     @staticmethod

@@ -1,13 +1,15 @@
 import os
 import json
-from flask import Flask, render_template, send_from_directory, redirect, url_for, request
-from flask_wtf.csrf import CSRFProtect
-from data import MockDB
 
 from base64 import urlsafe_b64encode, urlsafe_b64decode
 
+from flask import Flask, render_template, send_from_directory, redirect, url_for, request
+from flask_wtf.csrf import CSRFProtect
+
+from data import MockDB
 from profile import Profile
 from booking_form import BookingForm
+from request_form import RequestForm
 
 
 weekday_names_ru = {
@@ -41,7 +43,7 @@ base_template_attr = {
 
 
 """
-Псевдо-БД для чтения данных из JSON файлов
+Псевдо-БД для чтения данных из JSON файлов и сохранения заявок и бронирований
 Перед использованием необходимо сгенерировать файлы из исходного файла data.py командой python -m data
 """
 db = MockDB()
@@ -83,7 +85,17 @@ def get_profile_by_id(profile_id: int):
 
 @app.route('/request/')
 def get_request():
-    return "здесь будет заявка на подбор"
+    # return "здесь будет заявка на подбор"
+
+    request_form = RequestForm()
+    request_form.goal.choices = [(k, v) for k, v in db.goals.items()]
+    request_form.time_limit.choices = [(k, v) for k, v in db.time_limits.items()]
+
+    return render_template(
+        'request.html',
+        **base_template_attr,
+        form=request_form
+    )
 
 
 @app.route('/request_done/')
