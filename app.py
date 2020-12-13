@@ -58,7 +58,15 @@ def get_all():
 
 @app.route('/goals/<goal>/')
 def get_goal(goal):
-    return "здесь будет цель <goal>"
+    # return "здесь будет цель <goal>"
+
+    return render_template(
+        'goal.html',
+        **base_template_attr,
+        goal_code=goal,
+        goal_name=db.goals.get(goal, 'неопределенного направления'),
+        teachers=sorted([t for t in db.teachers if goal in t.get('goals', [])], key=lambda t: t['rating'], reverse=True)
+    )
 
 
 @app.route('/profiles/<int:profile_id>/')
