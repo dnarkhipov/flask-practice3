@@ -1,5 +1,6 @@
 import os
 import json
+import random
 
 from base64 import urlsafe_b64encode, urlsafe_b64decode
 
@@ -47,7 +48,9 @@ def main():
     # return "здесь будет главная"
     return render_template(
         'index.html',
-        **base_template_attr
+        **base_template_attr,
+        goals=db.goals,
+        teachers=random.sample(db.teachers, 6)
     )
 
 
