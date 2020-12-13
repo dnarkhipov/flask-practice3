@@ -7,7 +7,7 @@
     <div class="text-center mb-5">
       <div class="btn-group mx-auto mb-0" role="group" aria-label="Basic example">
           {% for goal_code, goal_name in goals.items() %}
-            <a href="/goals/{{ goal_code }}/" class="btn btn-outline-secondary">
+            <a href="{{ url_for('get_goal', goal=goal_code) }}" class="btn btn-outline-secondary">
                 {% if goal_code == 'work' %}🏢{% elif goal_code == 'travel' %}⛱{% elif goal_code == 'study' %}🏫{% elif goal_code == 'relocate' %}🚜{% endif %} {{ goal_name }}
             </a>
           {% endfor %}
@@ -26,7 +26,7 @@
     <h2 class="text-center mt-5 mb-3">Не нашли своего репетитора?</h2>
     <p class="text-center mb-4">Расскажите, кто вам нужен и мы подберем его сами</p>
     <div class="text-center pb-5">
-        <a href="/request/" class="btn btn-primary">Заказать подбор</a>
+        <a href="{{ url_for('get_request') }}" class="btn btn-primary">Заказать подбор</a>
     </div>
 
 

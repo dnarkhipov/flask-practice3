@@ -11,6 +11,7 @@ from data import db
 from profile import Profile
 from booking_form import BookingForm
 from request_form import RequestForm
+from sort_mode_form import SortModeForm
 
 
 weekday_names_ru = {
@@ -37,7 +38,7 @@ base_template_attr = {
     "title": "TINYSTEPS",
     "nav_title": "TINYSTEPS",
     "nav_items": {
-        "/all": "Все репетиторы",
+        "/all/": "Все репетиторы",
         "/request/": "Заявка на подбор",
     }
 }
@@ -45,7 +46,6 @@ base_template_attr = {
 
 @app.route('/')
 def main():
-    # return "здесь будет главная"
     return render_template(
         'index.html',
         **base_template_attr,
@@ -54,15 +54,35 @@ def main():
     )
 
 
-@app.route('/all')
+@app.route('/all/', methods=['get', 'post'])
 def get_all():
-    return "здесь будут преподаватели"
+    sort_form = SortModeForm()
+
+    _mode = sort_form.sort_mode.data
+    if _mode == 'random':
+        _teachers = db.teachers
+        random.shuffle(_teachers)
+    elif _mode == 'rating_desc':
+        _teachers = sorted(db.teachers, key=lambda x: x['rating'], reverse=True)
+    elif _mode == 'price_desc':
+        _teachers = sorted(db.teachers, key=lambda x: x['price'], reverse=True)
+    elif _mode == 'price_asc':
+        _teachers = sorted(db.teachers, key=lambda x: x['price'], reverse=False)
+    else:
+        _teachers = db.teachers
+
+    # return "здесь будут преподаватели"
+    return render_template(
+        'all.html',
+        **base_template_attr,
+        goals=db.goals,
+        teachers=_teachers,
+        form=sort_form
+    )
 
 
 @app.route('/goals/<goal>/')
 def get_goal(goal):
-    # return "здесь будет цель <goal>"
-
     return render_template(
         'goal.html',
         **base_template_attr,
@@ -74,7 +94,6 @@ def get_goal(goal):
 
 @app.route('/profiles/<int:profile_id>/')
 def get_profile_by_id(profile_id: int):
-    # return "здесь будет преподаватель <profile_id>"
     profile = db.search_teacher_by_id(profile_id)
     if not profile:
         return redirect('/all')
@@ -89,8 +108,6 @@ def get_profile_by_id(profile_id: int):
 
 @app.route('/request/', methods=['GET', 'POST'])
 def get_request():
-    # return "здесь будет заявка на подбор"
-
     request_form = RequestForm()
 
     if request.method == 'POST' and request_form.validate():
@@ -112,8 +129,6 @@ def get_request():
 
 @app.route('/request_done/<fdata>')
 def get_request_done(fdata):
-    # return "заявка на подбор отправлена"
-
     # распаковываем данные формы
     request_record = json.loads(urlsafe_b64decode(fdata).decode('utf-8'))
     return render_template(
@@ -127,8 +142,6 @@ def get_request_done(fdata):
 
 @app.route('/booking/<int:profile_id>/<day_of_week>/<time>/', methods=['GET', 'POST'])
 def get_booking_form(profile_id: int, day_of_week, time):
-    # return "здесь будет форма бронирования <profile_id>"
-
     profile = db.search_teacher_by_id(profile_id)
     if not profile:
         return redirect('/all')
@@ -159,8 +172,6 @@ def get_booking_form(profile_id: int, day_of_week, time):
 
 @app.route('/booking_done/<fdata>')
 def get_booking_form_done(fdata):
-    # return "заявка отправлена"
-
     # распаковываем данные формы
     booking_record = json.loads(urlsafe_b64decode(fdata).decode('utf-8'))
     return render_template(
