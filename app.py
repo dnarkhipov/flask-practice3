@@ -6,7 +6,7 @@ from base64 import urlsafe_b64encode, urlsafe_b64decode
 from flask import Flask, render_template, send_from_directory, redirect, url_for, request
 from flask_wtf.csrf import CSRFProtect
 
-from data import MockDB
+from data import db
 from profile import Profile
 from booking_form import BookingForm
 from request_form import RequestForm
@@ -40,13 +40,6 @@ base_template_attr = {
         "/request/": "Заявка на подбор",
     }
 }
-
-
-"""
-Псевдо-БД для чтения данных из JSON файлов и сохранения заявок и бронирований
-Перед использованием необходимо сгенерировать файлы из исходного файла data.py командой python -m data
-"""
-db = MockDB()
 
 
 @app.route('/')
@@ -83,16 +76,21 @@ def get_profile_by_id(profile_id: int):
     )
 
 
-@app.route('/request/')
+@app.route('/request/', methods=['GET', 'POST'])
 def get_request():
     # return "здесь будет заявка на подбор"
 
     request_form = RequestForm()
-    request_form.goal.choices = [(k, v) for k, v in db.goals.items()]
-    request_form.goal.default = request_form.goal.choices[0][0]
-    request_form.time_limit.choices = [(k, v) for k, v in db.time_limits.items()]
-    request_form.time_limit.default = request_form.time_limit.choices[0][0]
-    request_form.process()
+
+    if request.method == 'POST' and request_form.validate():
+        request_record = request_form.data
+        # сохраняем данные формы без CSRF токена
+        request_record.pop('csrf_token', None)
+        db.add_request_record(request_record)
+
+        # пакуем данные формы для передачи в квитанцию
+        fdata = urlsafe_b64encode(bytes(json.dumps(request_record, ensure_ascii=False), 'utf-8'))
+        return redirect(url_for('get_request_done', fdata=fdata))
 
     return render_template(
         'request.html',
@@ -101,9 +99,19 @@ def get_request():
     )
 
 
-@app.route('/request_done/')
-def get_request_done():
-    return "заявка на подбор отправлена"
+@app.route('/request_done/<fdata>')
+def get_request_done(fdata):
+    # return "заявка на подбор отправлена"
+
+    # распаковываем данные формы
+    request_record = json.loads(urlsafe_b64decode(fdata).decode('utf-8'))
+    return render_template(
+        'request_done.html',
+        **base_template_attr,
+        request_info=request_record,
+        goals=db.goals,
+        time_limits=db.time_limits
+    )
 
 
 @app.route('/booking/<int:profile_id>/<day_of_week>/<time>/', methods=['GET', 'POST'])

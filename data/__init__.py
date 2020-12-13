@@ -15,10 +15,10 @@ REQUEST_JSON = data_path.joinpath('request.json')
 
 
 REQUEST_TIME_LIMITS = {
-    'limit1': '1-2 часа в неделю',
-    'limit2': '3-5 часов в неделю',
-    'limit3': '5-7 часов в неделю',
-    'limit4': '7-10 часов в неделю'
+    'limit1_2': '1-2 часа в неделю',
+    'limit3_5': '3-5 часов в неделю',
+    'limit5_7': '5-7 часов в неделю',
+    'limit7_10': '7-10 часов в неделю'
 }
 
 class MockDB:
@@ -80,7 +80,42 @@ class MockDB:
         except Exception:
             pass
 
+    @staticmethod
+    def add_request_record(request: 'Dict'):
+        """
+        Сохраняем заявку на подбор в файл в JSON-формате
+        :param request: заявка на подбор
+        """
+        if REQUEST_JSON.exists():
+            """
+            файл с заявками должен оставаться корректным по формату JSON,
+            самое простое решение - перепистаь его заново с новой записью 
+            """
+            try:
+                with open(REQUEST_JSON, 'r') as f:
+                    request_list = json.load(f)
+            except Exception:
+                return
+        else:
+            request_list = []
+
+        request_list.append(request)
+
+        try:
+            with open(REQUEST_JSON, 'w', encoding='utf8') as f:
+                json.dump(request_list, f, ensure_ascii=False)
+
+        except Exception:
+            pass
+
+
+"""
+Псевдо-БД для чтения данных из JSON файлов и сохранения заявок и бронирований
+Перед использованием необходимо сгенерировать файлы из исходного файла data.py командой python -m data
+"""
+db = MockDB()
+
 
 __all__ = [
-    'MockDB'
+    'db'
 ]
