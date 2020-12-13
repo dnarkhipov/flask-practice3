@@ -8,7 +8,7 @@
       <div class="btn-group mx-auto mb-0" role="group" aria-label="Basic example">
           {% for goal_code, goal_name in goals.items() %}
             <a href="{{ url_for('get_goal', goal=goal_code) }}" class="btn btn-outline-secondary">
-                {% if goal_code == 'work' %}🏢{% elif goal_code == 'travel' %}⛱{% elif goal_code == 'study' %}🏫{% elif goal_code == 'relocate' %}🚜{% endif %} {{ goal_name }}
+                {% if goal_code in ['work', 'dev'] %}🏢{% elif goal_code == 'travel' %}⛱{% elif goal_code == 'study' %}🏫{% elif goal_code == 'relocate' %}🚜{% endif %} {{ goal_name }}
             </a>
           {% endfor %}
       </div>

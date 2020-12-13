@@ -31,7 +31,7 @@ class MockDB:
             with open(TEACHERS_JSON, 'r') as f:
                 self._teachers: 'List' = json.load(f)
 
-            if not self._goals or len(self._goals) != 4 or not self._teachers or len(self._teachers) == 0:
+            if not self._goals or len(self._goals) < 4 or not self._teachers or len(self._teachers) == 0:
                 raise Exception
 
         except Exception:
