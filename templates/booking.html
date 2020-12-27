@@ -6,7 +6,7 @@
             <div class="col-10 col-md-6 offset-1 offset-md-3 mb-3">
                 <form action="{{ url_for('get_booking_form', profile_id=form.clientTeacher.data, day_of_week=form.clientWeekday.data, time=form.clientTime.data|replace(':', '')) }}"
                       class="card mb-3" method="POST">
-                    {{ form.csrf_token() }}
+                    {{ form.csrf_token }}
                     <div class="card-body text-center pt-5">
                         <img src="{{ profile.picture }}" class="mb-3" width="95" alt="{{ profile.name }}">
                         <h2 class="h5 card-title mt-2 mb-2">{{ profile.name }}</h2>

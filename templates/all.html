@@ -16,7 +16,7 @@
                             в базе</strong></p>
 
                         <form action="{{ url_for('get_all') }}" class="float-right d-inline-block" method="post">
-                            {{ form.csrf_token() }}
+                            {{ form.csrf_token }}
                             <div class="form-inline">
                                 {{ form.sort_mode(class_='custom-select my-1 mr-2') }}
                                 <button type="submit" class="btn btn-primary my-1">Сортировать</button>
