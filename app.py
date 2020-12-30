@@ -27,14 +27,11 @@ weekday_names_ru = {
 app = Flask(__name__)
 
 csrf = CSRFProtect(app)
-SECRET_KEY = os.urandom(43)
-app.config['SECRET_KEY'] = SECRET_KEY
+app.config['SECRET_KEY'] = '1a0b329d-f511-47d0-a111-335d2acbfd88'   # SECRET_KEY
 
 
 base_template_attr = {
-    """
-    Базовые настроки макета (название сайта, пунктов меню и т.п.)
-    """
+    # Базовые настроки макета (название сайта, пунктов меню и т.п.)
     "title": "TINYSTEPS",
     "nav_title": "TINYSTEPS",
     "nav_items": {
@@ -58,25 +55,25 @@ def main():
 def get_all():
     sort_form = SortModeForm()
 
-    _mode = sort_form.sort_mode.data
-    if _mode == 'random':
-        _teachers = db.teachers
-        random.shuffle(_teachers)
-    elif _mode == 'rating_desc':
-        _teachers = sorted(db.teachers, key=lambda x: x['rating'], reverse=True)
-    elif _mode == 'price_desc':
-        _teachers = sorted(db.teachers, key=lambda x: x['price'], reverse=True)
-    elif _mode == 'price_asc':
-        _teachers = sorted(db.teachers, key=lambda x: x['price'], reverse=False)
+    mode = sort_form.sort_mode.data
+    if mode == 'random':
+        teachers = db.teachers
+        random.shuffle(teachers)
+    elif mode == 'rating_desc':
+        teachers = sorted(db.teachers, key=lambda x: x['rating'], reverse=True)
+    elif mode == 'price_desc':
+        teachers = sorted(db.teachers, key=lambda x: x['price'], reverse=True)
+    elif mode == 'price_asc':
+        teachers = sorted(db.teachers, key=lambda x: x['price'], reverse=False)
     else:
-        _teachers = db.teachers
+        teachers = db.teachers
 
     # return "здесь будут преподаватели"
     return render_template(
         'all.html',
         **base_template_attr,
         goals=db.goals,
-        teachers=_teachers,
+        teachers=teachers,
         form=sort_form
     )
 
