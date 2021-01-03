@@ -1,6 +1,6 @@
 import json
 from .data import goals, teachers
-from . import GOALS_JSON, TEACHERS_JSON
+from .mock_db import GOALS_JSON, TEACHERS_JSON
 
 
 def export_data():

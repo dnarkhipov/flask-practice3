@@ -3,18 +3,13 @@ from wtforms import StringField, HiddenField
 from wtforms import validators
 from wtforms.fields.html5 import TelField
 
+from phone_validate import phone_validate
+
 
 class BookingForm(FlaskForm):
-    clientWeekday = HiddenField()
-    clientTime = HiddenField()
-    clientTeacher = HiddenField()
+    client_weekday = HiddenField()
+    client_time = HiddenField()
+    client_teacher = HiddenField()
 
-    clientName = StringField('Вас зовут', [validators.InputRequired('Необходимо заполнить это поле')])
-
-    clientPhone = TelField('Ваш телефон (11 цифр)', [
-        validators.Regexp(
-            # маска для номера телефона написана универсальной из интереса...
-            r'^(\+\d|8)[\s,(]?\d{3}[\s,)]?\d{3}[\s]?\d{2}[\s]?\d{2}$',
-            message='Введите номер телефона в формате 11 цифр, например +79001234567'
-        )
-    ])
+    client_name = StringField('Вас зовут', [validators.InputRequired()])
+    client_phone = TelField('Ваш телефон', [validators.InputRequired(), phone_validate])

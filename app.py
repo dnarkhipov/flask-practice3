@@ -7,8 +7,7 @@ from base64 import urlsafe_b64encode, urlsafe_b64decode
 from flask import Flask, render_template, send_from_directory, redirect, url_for, request
 from flask_wtf.csrf import CSRFProtect
 
-from data import db
-from profile import Profile
+from data import db, InternalDbError, RequestRecord, BookingRecord
 from booking_form import BookingForm
 from request_form import RequestForm
 from sort_mode_form import SortModeForm
@@ -85,42 +84,51 @@ def get_goal(goal):
         **base_template_attr,
         goal_code=goal,
         goal_name=db.goals.get(goal, 'неопределенного направления'),
-        teachers=sorted([t for t in db.teachers if goal in t.get('goals', [])], key=lambda t: t['rating'], reverse=True)
+        teachers=sorted((t for t in db.teachers if goal in t.get('goals', [])), key=lambda t: t['rating'], reverse=True)
     )
 
 
 @app.route('/profiles/<int:profile_id>/')
 def get_profile_by_id(profile_id: int):
-    profile = db.search_teacher_by_id(profile_id)
-    if not profile:
+    teacher = db.search_teacher_by_id(profile_id)
+    if not teacher:
         return redirect('/all')
 
     return render_template(
         'profile.html',
         **base_template_attr,
-        profile=Profile(**profile),
+        profile=teacher,
         weekday_names=weekday_names_ru
     )
 
 
 @app.route('/request/', methods=['GET', 'POST'])
 def get_request():
-    request_form = RequestForm()
+    form = RequestForm()
+    form.goal.choices = [(k, v) for k, v in db.goals.items()]
+    form.time_limit.choices = [(k, v) for k, v in db.time_limits.items()]
 
-    if request.method == 'POST' and request_form.validate():
-        request_record = request_form.data
-        # сохраняем данные формы без CSRF токена
-        request_record.pop('csrf_token', None)
-        db.add_request_record(request_record)
+    if request.method == 'POST':
+        if form.validate():
+            request_record = RequestRecord()
+            form.populate_obj(request_record)
+            try:
+                db.add_request_record(request_record)
+            except InternalDbError as err:
+                return f'Internal DB error: {err}', 500
 
-        # пакуем данные формы для передачи в квитанцию
-        fdata = urlsafe_b64encode(bytes(json.dumps(request_record, ensure_ascii=False), 'utf-8'))
-        return redirect(url_for('get_request_done', fdata=fdata))
+            # пакуем данные формы для передачи в квитанцию
+            fdata = urlsafe_b64encode(bytes(json.dumps(request_record.as_dict(), ensure_ascii=False), 'utf-8'))
+            return redirect(url_for('get_request_done', fdata=fdata))
+    else:
+        form.goal.default = next(iter(db.goals), 'empty')
+        form.time_limit.default = next(iter(db.time_limits), 'empty')
+        form.process()
 
     return render_template(
         'request.html',
         **base_template_attr,
-        form=request_form
+        form=form
     )
 
 
@@ -139,30 +147,32 @@ def get_request_done(fdata):
 
 @app.route('/booking/<int:profile_id>/<day_of_week>/<time>/', methods=['GET', 'POST'])
 def get_booking_form(profile_id: int, day_of_week, time):
-    profile = db.search_teacher_by_id(profile_id)
-    if not profile:
+    teacher = db.search_teacher_by_id(profile_id)
+    if not teacher:
         return redirect('/all')
 
-    booking_form = BookingForm()
-    booking_form.clientTeacher.data = profile_id
-    booking_form.clientWeekday.data = day_of_week
-    booking_form.clientTime.data = f'{time[:2]}:{time[-2:]}'
+    form = BookingForm()
+    form.client_teacher.data = profile_id
+    form.client_weekday.data = day_of_week
+    form.client_time.data = f'{time[:2]}:{time[-2:]}'
 
-    if request.method == 'POST' and booking_form.validate():
-        booking_record = booking_form.data
-        # сохраняем данные формы без CSRF токена
-        booking_record.pop('csrf_token', None)
-        db.add_booking_record(booking_record)
+    if request.method == 'POST' and form.validate():
+        booking_record = BookingRecord()
+        form.populate_obj(booking_record)
+        try:
+            db.add_booking_record(booking_record)
+        except InternalDbError as err:
+            return f'Internal DB error: {err}', 500
 
         # пакуем данные формы для передачи в квитанцию
-        fdata = urlsafe_b64encode(bytes(json.dumps(booking_record, ensure_ascii=False), 'utf-8'))
+        fdata = urlsafe_b64encode(bytes(json.dumps(booking_record.as_dict(), ensure_ascii=False), 'utf-8'))
         return redirect(url_for('get_booking_form_done', fdata=fdata))
 
     return render_template(
         'booking.html',
         **base_template_attr,
-        profile=Profile(**profile),
-        form=booking_form,
+        profile=teacher,
+        form=form,
         weekday_names=weekday_names_ru
     )
 
